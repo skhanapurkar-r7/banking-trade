@@ -1,0 +1,55 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Multi-Environment Deployment
+
+cloud "GitHub" {
+    component "Source Code" as Code
+    component "GitHub Actions" as Actions
+}
+
+cloud "Container Registry" {
+    artifact "Docker Images" as Images
+}
+
+node "DEV Environment" {
+    component "DEV API\ndev.trade-store.com" as DevAPI
+    database "DEV DB" as DevDB
+    DevAPI --> DevDB
+}
+
+node "STAGING Environment" {
+    component "STG API\nstaging.trade-store.com" as StgAPI
+    database "STG DB" as StgDB
+    StgAPI --> StgDB
+}
+
+node "PRODUCTION Environment" {
+    component "PROD API\ntrade-store.com" as ProdAPI
+    database "PROD DB" as ProdDB
+    ProdAPI --> ProdDB
+}
+
+Code --> Actions : Push/PR
+Actions --> Images : Build & Push
+Images --> DevAPI : Deploy (Auto)
+Images --> StgAPI : Deploy (Approval)
+Images --> ProdAPI : Deploy (Release + Approval)
+
+note right of DevAPI
+    Auto-deploy on main merge
+    Feature branch deployments
+end note
+
+note right of StgAPI
+    Requires approval
+    Independent from DEV
+end note
+
+note right of ProdAPI
+    Release-based
+    2 approvals required
+    Blue-green deployment
+end note
+
+@enduml

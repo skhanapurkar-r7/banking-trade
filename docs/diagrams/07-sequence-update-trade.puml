@@ -1,0 +1,43 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Update Trade
+
+actor Client
+participant "API" as API
+participant "TradeService" as Service
+participant "TradeRepository" as Repository
+participant "Database" as DB
+
+Client -> API: PUT /api/v1/trades/1\n{updated_data}
+activate API
+
+API -> Service: update_trade(1, trade_data)
+activate Service
+
+Service -> Service: Validate maturity date
+
+Service -> Repository: get_by_id(1)
+activate Repository
+Repository -> DB: SELECT * FROM trades\nWHERE id = 1
+DB --> Repository: existing_trade
+deactivate Repository
+
+alt Trade exists
+    Service -> Repository: update(1, trade_data)
+    activate Repository
+    Repository -> DB: UPDATE trades\nSET ... WHERE id = 1
+    DB --> Repository: updated_trade
+    deactivate Repository
+    
+    Service --> API: Trade (200 OK)
+    API --> Client: HTTP 200\n{updated_trade}
+else Trade not found
+    Service --> API: TradeNotFoundException
+    API --> Client: HTTP 404\n{error}
+end
+
+deactivate Service
+deactivate API
+
+@enduml

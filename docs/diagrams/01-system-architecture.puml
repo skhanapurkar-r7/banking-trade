@@ -1,0 +1,72 @@
+@startuml
+!define RECTANGLE class
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor<<api>> LightBlue
+    BackgroundColor<<service>> LightGreen
+    BackgroundColor<<repository>> LightYellow
+    BackgroundColor<<database>> LightCoral
+}
+
+title Trade Store - 3-Tier System Architecture
+
+package "API Layer" <<api>> {
+    [Trade API v1] as API
+    [Health Check] as Health
+    [Error Handler] as ErrorHandler
+}
+
+package "Service Layer" <<service>> {
+    [Trade Service] as Service
+    [Validation Logic] as Validation
+    [Business Rules] as Rules
+}
+
+package "Repository Layer" <<repository>> {
+    [Trade Repository] as Repository
+    [Database Session] as Session
+}
+
+package "Database" <<database>> {
+    database "SQLite" as DB {
+        [trades table]
+    }
+}
+
+package "External" {
+    [Client/Browser] as Client
+}
+
+Client --> API : HTTP Request
+API --> Service : Call business logic
+Service --> Repository : Data operations
+Repository --> Session : Query
+Session --> DB : SQL
+DB --> Session : Results
+Session --> Repository : Data
+Repository --> Service : Models
+Service --> API : Response
+API --> Client : HTTP Response
+
+API ..> ErrorHandler : uses
+Service ..> Validation : uses
+Service ..> Rules : enforces
+
+note right of Service
+  Business Logic:
+  - Version validation
+  - Maturity date checks
+  - Auto-expiry marking
+end note
+
+note right of Repository
+  Data Access:
+  - CRUD operations
+  - Filtering
+  - Pagination
+  - Sorting
+end note
+
+@enduml

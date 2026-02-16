@@ -1,0 +1,24 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Create Trade - Maturity Date Validation
+
+actor Client
+participant "API" as API
+participant "Pydantic\nValidator" as Validator
+
+Client -> API: POST /api/v1/trades\n{maturity_date: "2020-01-01"}
+activate API
+
+API -> Validator: Validate TradeCreate
+activate Validator
+
+Validator -> Validator: Check maturity_date\n2020-01-01 < today
+
+Validator --> API: ValidationError\n"Maturity date cannot\nbe in the past"
+deactivate Validator
+
+API --> Client: HTTP 422\nUnprocessable Entity\n{\n  "detail": [\n    {\n      "msg": "Maturity date\n      cannot be in the past"\n    }\n  ]\n}
+deactivate API
+
+@enduml

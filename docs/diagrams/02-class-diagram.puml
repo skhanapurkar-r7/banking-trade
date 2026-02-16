@@ -1,0 +1,126 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+
+title Trade Store - Class Diagram
+
+' Pydantic Models
+class TradeBase {
+    + trade_id: str
+    + version: int
+    + counter_party_id: str
+    + book_id: str
+    + maturity_date: date
+    + validate_maturity_date()
+}
+
+class TradeCreate {
+    {Inherits TradeBase}
+}
+
+class TradeUpdate {
+    {Inherits TradeBase}
+}
+
+class Trade {
+    + id: int
+    + created_date: date
+    + expired: bool
+}
+
+class TradeListResponse {
+    + trades: List[Trade]
+    + total: int
+    + page: int
+    + page_size: int
+    + total_pages: int
+}
+
+' SQLAlchemy Model
+class TradeDB {
+    + id: Integer (PK)
+    + trade_id: String(50)
+    + version: Integer
+    + counter_party_id: String(50)
+    + book_id: String(50)
+    + maturity_date: Date
+    + created_date: Date
+    + expired: Boolean
+}
+
+' Service Layer
+class TradeService {
+    - repository: TradeRepository
+    + __init__(db: Session)
+    + get_trades(page, page_size, filters): TradeListResponse
+    + get_trade(trade_id: int): Trade
+    + create_trade(trade_data: TradeCreate): Trade
+    + update_trade(trade_id: int, trade_data: TradeUpdate): Trade
+    + delete_trade(trade_id: int): bool
+}
+
+' Repository Layer
+class TradeRepository {
+    - db: Session
+    + __init__(db: Session)
+    + get_all(skip, limit, filters): Tuple[List[TradeDB], int]
+    + get_by_id(trade_id: int): Optional[TradeDB]
+    + get_by_trade_id_and_version(trade_id: str, version: int): Optional[TradeDB]
+    + get_latest_version(trade_id: str): Optional[TradeDB]
+    + create(trade_data: TradeCreate): TradeDB
+    + update(trade_id: int, trade_data: TradeUpdate): TradeDB
+    + delete(trade_id: int): bool
+    + update_expired_trades(): int
+}
+
+' Exceptions
+class TradeStoreException {
+    + message: str
+    + details: Dict
+}
+
+class TradeNotFoundException {
+}
+
+class VersionConflictException {
+}
+
+class MaturityDateException {
+}
+
+' Relationships
+TradeBase <|-- TradeCreate
+TradeBase <|-- TradeUpdate
+TradeBase <|-- Trade
+
+TradeService --> TradeRepository : uses
+TradeService --> Trade : returns
+TradeService --> TradeCreate : accepts
+TradeService --> TradeUpdate : accepts
+TradeService --> TradeListResponse : returns
+
+TradeRepository --> TradeDB : manages
+TradeRepository ..> TradeCreate : uses
+TradeRepository ..> TradeUpdate : uses
+
+TradeStoreException <|-- TradeNotFoundException
+TradeStoreException <|-- VersionConflictException
+TradeStoreException <|-- MaturityDateException
+
+TradeService ..> TradeStoreException : throws
+
+note right of TradeService
+  Business Logic Layer
+  - Validates business rules
+  - Handles version conflicts
+  - Manages trade lifecycle
+end note
+
+note right of TradeRepository
+  Data Access Layer
+  - Database operations
+  - Query building
+  - Data persistence
+end note
+
+@enduml

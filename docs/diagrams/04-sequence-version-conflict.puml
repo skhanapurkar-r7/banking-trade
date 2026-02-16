@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Create Trade - Version Conflict
+
+actor Client
+participant "API" as API
+participant "TradeService" as Service
+participant "TradeRepository" as Repository
+participant "Database" as DB
+
+Client -> API: POST /api/v1/trades\n{trade_id: "T1", version: 1}
+activate API
+
+API -> Service: create_trade(trade_data)
+activate Service
+
+Service -> Repository: get_latest_version("T1")
+activate Repository
+Repository -> DB: SELECT * FROM trades\nWHERE trade_id = 'T1'\nORDER BY version DESC
+DB --> Repository: existing_trade\n(version: 2)
+deactivate Repository
+
+Service -> Service: Check version\n1 < 2 (conflict!)
+
+Service --> API: VersionConflictException\n"Version 1 is lower than\nexisting version 2"
+deactivate Service
+
+API --> Client: HTTP 409 Conflict\n{\n  "detail": {\n    "message": "Version conflict",\n    "details": {...}\n  }\n}
+deactivate API
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title CI/CD Pipeline - Complete Flow
+
+start
+
+:Developer pushes code;
+
+if (Branch type?) then (feature/*)
+    :Run Lint;
+    :Run Tests;
+    :Run Security Scan;
+    
+    if (All checks pass?) then (yes)
+        :Wait for Build Approval;
+        
+        if (Approved?) then (yes)
+            :Build Docker Image;
+            :Push to Registry;
+            
+            fork
+                :Deploy to DEV\n(with approval);
+            fork again
+                :Deploy to STAGING\n(with approval);
+            end fork
+        else (no)
+            stop
+        endif
+    else (no)
+        :Pipeline Failed;
+        stop
+    endif
+    
+elseif (main) then
+    :Run Lint;
+    :Run Tests;
+    :Run Security Scan;
+    
+    if (All checks pass?) then (yes)
+        :Build Docker Image;
+        :Push to Registry;
+        :Deploy to DEV (Auto);
+        :Deploy to STAGING\n(with approval);
+    else (no)
+        :Pipeline Failed;
+        stop
+    endif
+    
+else (release tag)
+    :Run Lint;
+    :Run Tests;
+    :Run Security Scan;
+    :Build Docker Image;
+    :Push to Registry;
+    :Deploy to PRODUCTION\n(with approval);
+endif
+
+:Send Notifications;
+stop
+
+@enduml
