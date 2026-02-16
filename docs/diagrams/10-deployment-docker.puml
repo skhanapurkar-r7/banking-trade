@@ -1,0 +1,40 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Docker Deployment Architecture
+
+node "Docker Host" {
+    node "Trade Store Container" {
+        component "Uvicorn Server\n(Port 8000)" as Uvicorn
+        component "FastAPI App" as App
+        component "SQLite DB\n(Volume)" as DB
+        
+        Uvicorn --> App
+        App --> DB
+    }
+    
+    note right of "Trade Store Container"
+        Image: trade-store-api:latest
+        User: appuser (non-root)
+        Health Check: /health
+    end note
+}
+
+cloud "GitHub Container Registry" {
+    artifact "Docker Image\nghcr.io/owner/repo:tag" as Image
+}
+
+actor "Client" as Client
+actor "Developer" as Dev
+
+Client --> Uvicorn : HTTP :8000
+Dev --> Image : docker pull
+Image --> "Trade Store Container" : docker run
+
+note bottom of Image
+    Multi-stage build:
+    1. Builder stage (Poetry)
+    2. Runtime stage (Python slim)
+end note
+
+@enduml

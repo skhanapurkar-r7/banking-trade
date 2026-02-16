@@ -1,0 +1,86 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+
+title Trade Store - Component Diagram
+
+package "FastAPI Application" {
+    component "Main App" as Main
+    component "CORS Middleware" as CORS
+    component "Lifespan Manager" as Lifespan
+}
+
+package "API Layer (v1)" {
+    component "Trade Routes" as Routes
+    component "Request Validation" as ReqVal
+    component "Response Models" as RespModel
+    component "Error Handlers" as ErrHandler
+}
+
+package "Service Layer" {
+    component "Trade Service" as TService
+    component "Business Rules" as BizRules
+    component "Validation Logic" as ValLogic
+}
+
+package "Repository Layer" {
+    component "Trade Repository" as TRepo
+    component "Database Session" as DBSession
+    component "Query Builder" as QueryBuilder
+}
+
+package "Core" {
+    component "Configuration" as Config
+    component "Logging" as Logging
+    component "Exceptions" as Exceptions
+}
+
+package "Models" {
+    component "Pydantic Models" as PydanticModels
+    component "SQLAlchemy Models" as SQLModels
+}
+
+database "SQLite Database" as DB
+
+Main --> CORS
+Main --> Lifespan
+Main --> Routes
+
+Routes --> ReqVal
+Routes --> RespModel
+Routes --> ErrHandler
+Routes --> TService
+
+TService --> BizRules
+TService --> ValLogic
+TService --> TRepo
+TService --> Exceptions
+
+TRepo --> DBSession
+TRepo --> QueryBuilder
+TRepo --> SQLModels
+
+DBSession --> DB
+
+Config ..> Main : configures
+Logging ..> Main : initializes
+Logging ..> TService : logs
+Logging ..> TRepo : logs
+
+PydanticModels ..> Routes : validates
+PydanticModels ..> TService : transfers
+SQLModels ..> TRepo : persists
+
+note right of TService
+  Orchestrates business logic
+  Enforces validation rules
+  Manages transactions
+end note
+
+note right of TRepo
+  Abstracts data access
+  Handles SQL operations
+  Manages connections
+end note
+
+@enduml

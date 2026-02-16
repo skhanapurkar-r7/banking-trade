@@ -1,0 +1,1 @@
+"""Trade Store Backend Application."""

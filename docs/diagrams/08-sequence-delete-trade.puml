@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Delete Trade
+
+actor Client
+participant "API" as API
+participant "TradeService" as Service
+participant "TradeRepository" as Repository
+participant "Database" as DB
+
+Client -> API: DELETE /api/v1/trades/1
+activate API
+
+API -> Service: delete_trade(1)
+activate Service
+
+Service -> Repository: delete(1)
+activate Repository
+
+Repository -> Repository: get_by_id(1)
+Repository -> DB: SELECT * FROM trades\nWHERE id = 1
+DB --> Repository: trade
+
+alt Trade exists
+    Repository -> DB: DELETE FROM trades\nWHERE id = 1
+    DB --> Repository: success
+    Repository --> Service: True
+    Service --> API: True
+    API --> Client: HTTP 204\nNo Content
+else Trade not found
+    Repository --> Service: False
+    Service --> API: TradeNotFoundException
+    API --> Client: HTTP 404\n{error}
+end
+
+deactivate Repository
+deactivate Service
+deactivate API
+
+@enduml

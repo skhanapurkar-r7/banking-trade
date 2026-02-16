@@ -1,0 +1,40 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Get Trades with Pagination
+
+actor Client
+participant "API" as API
+participant "TradeService" as Service
+participant "TradeRepository" as Repository
+participant "Database" as DB
+
+Client -> API: GET /api/v1/trades?\npage=1&page_size=10
+activate API
+
+API -> Service: get_trades(page=1,\npage_size=10)
+activate Service
+
+Service -> Repository: update_expired_trades()
+activate Repository
+Repository -> DB: UPDATE trades\nSET expired = TRUE\nWHERE maturity_date < today
+DB --> Repository: updated_count
+deactivate Repository
+
+Service -> Repository: get_all(skip=0,\nlimit=10)
+activate Repository
+Repository -> DB: SELECT * FROM trades\nLIMIT 10 OFFSET 0
+DB --> Repository: trades_list
+Repository -> DB: SELECT COUNT(*)\nFROM trades
+DB --> Repository: total_count
+deactivate Repository
+
+Service -> Service: Calculate pagination\ntotal_pages = ceil(total/page_size)
+
+Service --> API: TradeListResponse\n{trades, total, page,\npage_size, total_pages}
+deactivate Service
+
+API --> Client: HTTP 200 OK\n{pagination_data}
+deactivate API
+
+@enduml

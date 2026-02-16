@@ -1,0 +1,68 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title CI/CD Pipeline - Detailed Stages
+
+|Lint Stage|
+start
+:Checkout Code;
+:Setup Python;
+:Install Poetry;
+:Install Dependencies;
+fork
+    :Run Black;
+fork again
+    :Run isort;
+fork again
+    :Run Flake8;
+end fork
+
+|Test Stage|
+:Run Pytest;
+:Generate Coverage;
+:Check Threshold (>70%);
+:Upload Coverage Report;
+
+|Security Stage|
+fork
+    :Run Safety Check;
+fork again
+    :Run Bandit Scan;
+end fork
+:Upload Security Reports;
+
+|Build Stage|
+if (Feature branch?) then (yes)
+    :Wait for Approval;
+endif
+:Setup Docker Buildx;
+:Login to Registry;
+:Build Image;
+:Test Image;
+:Push Image;
+
+|Deploy Stage|
+if (Environment?) then (DEV)
+    if (Feature branch?) then (yes)
+        :Wait for Approval;
+    endif
+    :Deploy to DEV;
+    :Health Check;
+elseif (STAGING) then
+    :Wait for Approval;
+    :Deploy to STAGING;
+    :Health Check;
+    :Smoke Tests;
+else (PRODUCTION)
+    :Wait for Approval;
+    :Create Backup;
+    :Blue-Green Deploy;
+    :Health Check;
+    :Smoke Tests;
+    :Switch Traffic;
+endif
+
+:Send Notification;
+stop
+
+@enduml

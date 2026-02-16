@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+
+title Create Trade - Success Flow
+
+actor Client
+participant "API\n(trades.py)" as API
+participant "TradeService" as Service
+participant "TradeRepository" as Repository
+participant "Database" as DB
+
+Client -> API: POST /api/v1/trades\n{trade_data}
+activate API
+
+API -> API: Validate request\n(Pydantic)
+API -> Service: create_trade(trade_data)
+activate Service
+
+Service -> Service: Validate maturity date\n(must be >= today)
+
+Service -> Repository: get_latest_version(trade_id)
+activate Repository
+Repository -> DB: SELECT * FROM trades\nWHERE trade_id = ?\nORDER BY version DESC
+DB --> Repository: existing_trade or None
+deactivate Repository
+
+alt No existing trade or higher version
+    Service -> Repository: create(trade_data)
+    activate Repository
+    Repository -> DB: INSERT INTO trades
+    DB --> Repository: new_trade
+    deactivate Repository
+    
+    Service --> API: Trade (201 Created)
+    API --> Client: HTTP 201\n{trade}
+else Lower version
+    Service --> API: VersionConflictException
+    API --> Client: HTTP 409\n{error}
+end
+
+deactivate Service
+deactivate API
+
+@enduml
