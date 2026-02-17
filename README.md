@@ -335,21 +335,14 @@ See [Deployment Guide](docs/deployment.md) for detailed instructions.
 
 **Core Documentation:**
 1. **[README.md](README.md)** - This file (Quick start, features, commands)
-2. **[REQUIREMENTS_AND_IMPLEMENTATION_STATUS.md](docs/REQUIREMENTS_AND_IMPLEMENTATION_STATUS.md)** - Complete requirements checklist
-3. **[API Specification](docs/api-spec.md)** - Complete API reference with examples
-4. **[Architecture](docs/architecture.md)** - System design and 3-tier architecture
+2. **[API Specification](docs/api-spec.md)** - Complete API reference with examples
+3. **[Architecture](docs/architecture.md)** - System design and 3-tier architecture
 
 **Implementation Details:**
-5. **[Database Schema](docs/database-schema.md)** - Database design with soft delete
-6. **[Testing Guide](docs/testing-guide.md)** - Test coverage and TDD approach
-7. **[Deployment Guide](docs/deployment-guide.md)** - Docker and cloud deployment
-8. **[CI/CD Documentation](docs/cicd-quick-reference.md)** - Pipeline configuration
-
-**Additional Resources:**
-- [Setup Guide](docs/setup.md) - Detailed installation instructions
-- [Connection Pooling](docs/connection-pooling-and-async.md) - Performance optimization
-- [Soft Delete Implementation](docs/SOFT_DELETE_IMPLEMENTATION.md) - Soft delete details
-- [Quick Reference](docs/QUICK_REFERENCE.md) - Common commands and workflows
+4. **[Database Schema](docs/database-schema.md)** - Database design with soft delete
+5. **[Testing Guide](docs/testing-guide.md)** - Test coverage and TDD approach
+6. **[Deployment Guide](docs/deployment-guide.md)** - Docker and cloud deployment
+7. **[CI/CD Documentation](docs/cicd-quick-reference.md)** - Pipeline configuration
 
 ## 🔐 Environment Variables
 
@@ -386,22 +379,6 @@ CORS_ORIGINS=http://localhost:3000
 5. **Soft Delete**: Deleted trades are marked with `is_deleted=true`, not physically removed
 6. **Query Filtering**: Soft-deleted trades are excluded from all queries automatically
 
-## 🗑️ Soft Delete Implementation
-
-The application implements soft delete functionality to preserve data integrity and audit trails:
-
-**How It Works:**
-- DELETE operations set `is_deleted=true` flag instead of removing records
-- All queries automatically filter out soft-deleted records
-- Soft-deleted trades return 404 when accessed directly
-- Database maintains complete history for compliance and auditing
-
-**Benefits:**
-- Data recovery capability
-- Audit trail preservation
-- Referential integrity maintained
-- Compliance with data retention policies
-
 **Database Schema:**
 ```sql
 CREATE TABLE trades (
@@ -418,8 +395,6 @@ CREATE TABLE trades (
 );
 CREATE INDEX ix_trades_is_deleted ON trades (is_deleted);
 ```
-
-See [Soft Delete Documentation](docs/SOFT_DELETE_IMPLEMENTATION.md) for details.
 
 ## 🏛️ Architecture Highlights
 
@@ -542,50 +517,6 @@ See [Deployment Guide](docs/deployment-guide.md) for:
 - Cloud platform deployment (AWS, Heroku, GCP)
 - Database migration
 - Monitoring setup
-
-## 📋 Assignment Submission
-
-### Main Documentation Files for Submission
-
-**Required Core Documents:**
-1. `README.md` (this file) - Project overview and quick start
-2. `docs/REQUIREMENTS_AND_IMPLEMENTATION_STATUS.md` - Requirements checklist
-3. `docs/api-spec.md` - Complete API specification
-4. `docs/architecture.md` - System architecture and design
-5. `docs/database-schema.md` - Database design with soft delete
-6. `docs/testing-guide.md` - Testing approach and coverage
-7. `docs/deployment-guide.md` - Deployment instructions
-
-**Additional Documentation:**
-- `docs/SOFT_DELETE_IMPLEMENTATION.md` - Soft delete feature details
-- `docs/connection-pooling-and-async.md` - Performance optimization
-- `docs/cicd-quick-reference.md` - CI/CD pipeline documentation
-- `docs/QUICK_REFERENCE.md` - Common commands and workflows
-
-**Key Differences:**
-- **Root README.md**: Quick start guide, essential commands, project overview
-- **docs/README.md**: Documentation index and navigation guide for all docs
-
-### Project Highlights
-
-✅ **All Requirements Met:**
-- 3-tier architecture (API → Service → Repository)
-- Comprehensive validation and business rules
-- Soft delete implementation
-- Connection pooling
-- Automatic expiry mechanism
-- 57 tests with >70% coverage
-- CI/CD pipeline with security scanning
-- Docker support
-- Complete documentation
-
-✅ **Production Ready:**
-- Type hints throughout
-- Structured logging
-- Error handling
-- Health checks
-- API versioning
-- Security best practices
 
 ## 🤝 Contributing
 
